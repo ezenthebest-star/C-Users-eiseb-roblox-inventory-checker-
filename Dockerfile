@@ -1,52 +1,49 @@
-# Node + Chrome (Chrome for Testing) for Selenium on Railway
-# Explicit platform for Railway (linux/amd64)
 FROM --platform=linux/amd64 node:20-bookworm
 
-# Chrome for Testing: matching Chrome + ChromeDriver (no version mismatch)
-# Install deps Chrome/Chromedriver need (status 127 = missing libs)
-ARG CHROME_VERSION=145.0.7632.26
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
-    unzip \
-    wget \
+    chromium \
+    fonts-liberation \
     libasound2 \
     libatk-bridge2.0-0 \
     libatk1.0-0 \
+    libc6 \
     libcairo2 \
     libcups2 \
     libdbus-1-3 \
-    libdrm2 \
+    libexpat1 \
+    libfontconfig1 \
     libgbm1 \
+    libgcc1 \
     libglib2.0-0 \
+    libgtk-3-0 \
     libnspr4 \
     libnss3 \
     libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libstdc++6 \
     libx11-6 \
+    libx11-xcb1 \
     libxcb1 \
     libxcomposite1 \
+    libxcursor1 \
     libxdamage1 \
     libxext6 \
     libxfixes3 \
-    libxkbcommon0 \
+    libxi6 \
     libxrandr2 \
-    fonts-liberation \
-    && wget -q "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chrome-linux64.zip" -O /tmp/chrome.zip \
-    && unzip -o /tmp/chrome.zip -d /tmp \
-    && mv /tmp/chrome-linux64/chrome /usr/local/bin/ \
-    && chmod +x /usr/local/bin/chrome \
-    && wget -q "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip \
-    && unzip -o /tmp/chromedriver.zip -d /tmp \
-    && mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/ \
-    && chmod +x /usr/local/bin/chromedriver \
-    && rm -rf /var/lib/apt/lists/* /tmp/chrome.zip /tmp/chromedriver.zip /tmp/chrome-linux64 /tmp/chromedriver-linux64
+    libxrender1 \
+    libxss1 \
+    libxtst6 \
+    xdg-utils \
+    && rm -rf /var/lib/apt/lists/*
 
-ENV CHROME_BIN=/usr/local/bin/chrome
-ENV CHROMEDRIVER_PATH=/usr/local/bin/chromedriver
-ENV PATH="/usr/local/bin:${PATH}"
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 COPY . .
 
 EXPOSE 3000
