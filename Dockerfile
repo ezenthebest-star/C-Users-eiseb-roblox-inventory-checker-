@@ -1,6 +1,6 @@
 # Node + Chrome (Chrome for Testing) for Selenium on Railway
 # Explicit platform for Railway (linux/amd64)
-FROM --platform=linux/amd64 node:20-bookworm-slim
+FROM --platform=linux/amd64 node:20-bookworm
 
 # Chrome for Testing: matching Chrome + ChromeDriver (no version mismatch)
 # Install deps Chrome/Chromedriver need (status 127 = missing libs)
