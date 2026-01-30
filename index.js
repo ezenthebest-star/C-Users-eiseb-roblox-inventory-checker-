@@ -78,7 +78,7 @@ async function initializeWebDriver() {
         options.addArguments('--disable-blink-features=AutomationControlled', '--exclude-switches=enable-automation');
 
         let builder = new Builder().forBrowser('chrome').setChromeOptions(options);
-        if (chromedriverPath) builder = builder.setChromeService(new chrome.ServiceBuilder(chromedriverPath).build());
+        // Skip setChromeService - chromedriver is in PATH (/usr/local/bin) in Docker. Explicit path caused "not a chrome.ServiceBuilder object" error.
         driver = await builder.build();
 
         const profileOptions = new chrome.Options();
@@ -94,7 +94,6 @@ async function initializeWebDriver() {
         profileOptions.addArguments('--disable-blink-features=AutomationControlled', '--exclude-switches=enable-automation');
 
         let profileBuilder = new Builder().forBrowser('chrome').setChromeOptions(profileOptions);
-        if (chromedriverPath) profileBuilder = profileBuilder.setChromeService(new chrome.ServiceBuilder(chromedriverPath).build());
         profileDriver = await profileBuilder.build();
 
         console.log('✅ WebDriver initialized' + (isRailway ? ' (Railway)' : ''));
