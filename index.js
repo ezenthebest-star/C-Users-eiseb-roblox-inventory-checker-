@@ -26,7 +26,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 let driver;
-let profileDriver;
 let processedUsers = new Set();
 let totalLogged = 0;
 let isScraping = false;
@@ -68,33 +67,18 @@ async function initializeWebDriver() {
         const options = new chrome.Options();
         if (chromeBin) options.setChromeBinaryPath(chromeBin);
         options.addArguments(
-            '--headless', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
+            '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
             '--disable-software-rasterizer', '--disable-gpu-compositing',
             '--ignore-certificate-errors', '--ignore-ssl-errors',
-            '--window-size=1920,1080', '--disable-web-security', '--disable-extensions',
-            '--disable-images', '--disable-background-networking'
+            '--window-size=1280,720', '--disable-web-security', '--disable-extensions',
+            '--disable-images', '--disable-background-networking',
+            '--disable-features=VizDisplayCompositor', '--disable-site-isolation-trials'
         );
         options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         options.addArguments('--disable-blink-features=AutomationControlled', '--exclude-switches=enable-automation');
 
         let builder = new Builder().forBrowser('chrome').setChromeOptions(options);
-        // Skip setChromeService - chromedriver is in PATH (/usr/local/bin) in Docker. Explicit path caused "not a chrome.ServiceBuilder object" error.
         driver = await builder.build();
-
-        const profileOptions = new chrome.Options();
-        if (chromeBin) profileOptions.setChromeBinaryPath(chromeBin);
-        profileOptions.addArguments(
-            '--headless', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
-            '--disable-software-rasterizer', '--disable-gpu-compositing',
-            '--ignore-certificate-errors', '--ignore-ssl-errors',
-            '--window-size=1920,1080', '--disable-web-security', '--disable-extensions',
-            '--disable-images', '--disable-background-networking'
-        );
-        profileOptions.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-        profileOptions.addArguments('--disable-blink-features=AutomationControlled', '--exclude-switches=enable-automation');
-
-        let profileBuilder = new Builder().forBrowser('chrome').setChromeOptions(profileOptions);
-        profileDriver = await profileBuilder.build();
 
         console.log('✅ WebDriver initialized' + (isRailway ? ' (Railway)' : ''));
         return true;
@@ -190,16 +174,16 @@ async function getAgedItems(userId) {
 }
 
 async function scrapeRolimonsUserProfile(profileUrl) {
-    if (!profileDriver) {
+    if (!driver) {
         return { value: 0, tradeAds: 0, avatarUrl: '', profileUrl };
     }
     try {
-        await profileDriver.get(profileUrl);
-        await profileDriver.sleep(3000);
+        await driver.get(profileUrl);
+        await driver.sleep(3000);
 
         const getText = async (selector) => {
             try {
-                const el = await profileDriver.findElement(By.css(selector));
+                const el = await driver.findElement(By.css(selector));
                 return await el.getText();
             } catch {
                 return '';
@@ -217,7 +201,7 @@ async function scrapeRolimonsUserProfile(profileUrl) {
             ];
             for (const selector of selectors) {
                 try {
-                    const elements = await profileDriver.findElements(By.css(selector));
+                    const elements = await driver.findElements(By.css(selector));
                     for (const el of elements) {
                         const text = (await el.getText()).replace(/,/g, '');
                         if (text && /^\d+$/.test(text)) {
@@ -235,7 +219,7 @@ async function scrapeRolimonsUserProfile(profileUrl) {
 
         let avatarUrl = '';
         try {
-            const img = await profileDriver.findElement(By.css('img.mx-auto.d-block.w-100.h-100[src^="https://tr.rbxcdn.com/"]'));
+            const img = await driver.findElement(By.css('img.mx-auto.d-block.w-100.h-100[src^="https://tr.rbxcdn.com/"]'));
             avatarUrl = await img.getAttribute('src') || '';
         } catch (_) {}
 
@@ -330,10 +314,8 @@ function isSessionInvalidError(err) {
 async function reinitDrivers() {
     try {
         if (driver) try { await driver.quit(); } catch (_) {}
-        if (profileDriver) try { await profileDriver.quit(); } catch (_) {}
     } catch (_) {}
     driver = null;
-    profileDriver = null;
     await initializeWebDriver();
 }
 
@@ -464,7 +446,6 @@ async function scrapeUserSources() {
 
 async function cleanup() {
     if (driver) try { await driver.quit(); } catch (_) {}
-    if (profileDriver) try { await profileDriver.quit(); } catch (_) {}
     process.exit(0);
 }
 
