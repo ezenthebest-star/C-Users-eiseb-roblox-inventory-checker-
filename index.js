@@ -50,8 +50,9 @@ async function startScraper() {
     console.log('🔐 Initializing inventory checker...');
     const initialized = await initializeWebDriver();
     if (!initialized) {
-        console.error('❌ Failed to initialize WebDriver.');
-        process.exit(1);
+        console.error('❌ Failed to initialize WebDriver. Will retry in 60s (server stays up for healthcheck).');
+        setTimeout(startScraper, 60000);
+        return;
     }
     console.log('🚀 Starting inventory checker (aged items + Discord)...');
     isScraping = true;
@@ -472,4 +473,5 @@ process.on('SIGINT', cleanup);
 
 console.log('🚀 Inventory checker (aged items + Discord)');
 console.log(`   AGED_RAP_MIN: ${AGED_RAP_MIN}, MIN_ROLIMONS_VALUE: ${MIN_ROLIMONS_VALUE}, Trade ads: ${MIN_TRADE_ADS}-${MAX_TRADE_ADS}, Held ${AGED_HELD_YEARS}+ yrs: ${ROBLOX_API_KEY ? `yes, ${AGED_INVENTORY_PERCENT_MIN}%+ of inventory` : 'no (set ROBLOX_API_KEY for 5+ yr filter)'}`);
-startScraper();
+// Delay so healthcheck can succeed before Chrome init (Chrome can be slow/fail on Railway)
+setTimeout(startScraper, 5000);
