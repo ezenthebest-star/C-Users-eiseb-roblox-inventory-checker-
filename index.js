@@ -67,12 +67,13 @@ async function initializeWebDriver() {
         const options = new chrome.Options();
         if (chromeBin) options.setChromeBinaryPath(chromeBin);
         options.addArguments(
-            '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
+            '--headless', '--no-sandbox', '--no-zygote', '--disable-dev-shm-usage', '--disable-gpu',
             '--disable-software-rasterizer', '--disable-gpu-compositing',
             '--ignore-certificate-errors', '--ignore-ssl-errors',
             '--window-size=1280,720', '--disable-web-security', '--disable-extensions',
             '--disable-images', '--disable-background-networking',
-            '--disable-features=VizDisplayCompositor', '--disable-site-isolation-trials'
+            '--disable-features=VizDisplayCompositor', '--disable-site-isolation-trials',
+            '--remote-debugging-port=0'
         );
         options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         options.addArguments('--disable-blink-features=AutomationControlled', '--exclude-switches=enable-automation');
