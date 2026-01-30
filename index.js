@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+console.log('🚀 Booting...');
 const axios = require('axios');
 const express = require('express');
 
@@ -36,7 +36,7 @@ app.get('/', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🌐 Healthcheck server running on port ${PORT}`);
 });
 
@@ -55,11 +55,12 @@ async function startScraper() {
 
 async function initializeBrowser() {
     try {
+        const puppeteer = require('puppeteer');
         const isRailway = !!process.env.RAILWAY_ENVIRONMENT || !!process.env.RAILWAY_PROJECT_ID;
         const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROME_BIN;
         browser = await puppeteer.launch({
             headless: true,
-            executablePath: executablePath || undefined,
+            ...(executablePath && { executablePath }),
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
